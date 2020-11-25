@@ -8,7 +8,7 @@ Parameters:
 
   VPC:
     Description: Please enter the ID of VPC
-    Type: String
+    Type: "AWS::EC2::VPC::Id"
 
   InternetGateway:
     Description: Please enter the ID of IGW
