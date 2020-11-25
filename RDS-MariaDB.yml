@@ -1,5 +1,5 @@
 Description:
-  Deploy an RDS Mysql instance
+  Deploy an RDS MariaDB instance
 Parameters:
   DBInstanceID:
     Default: mydbinstance
@@ -39,7 +39,7 @@ Parameters:
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   DBUsername:
     NoEcho: 'true'
-    Description: Username for MySQL database access
+    Description: Username for MariaDB database access
     Type: String
     MinLength: '1'
     MaxLength: '16'
@@ -47,7 +47,7 @@ Parameters:
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   DBPassword:
     NoEcho: 'true'
-    Description: Password MySQL database access
+    Description: Password MariaDB database access
     Type: String
     MinLength: '8'
     MaxLength: '41'
@@ -64,11 +64,11 @@ Resources:
     Type: AWS::RDS::DBSubnetGroup
     Properties: 
       DBSubnetGroupDescription: SubnetGroup
-      DBSubnetGroupName: SubnetGroup
+      DBSubnetGroupName: MariaDBSubnetGroup
       SubnetIds: !Ref DBSubnet
       Tags: 
         - Key: DBType
-          Value: Mysql
+          Value: MariaDB
   MyDB:
     Type: 'AWS::RDS::DBInstance'
     Properties:
@@ -78,17 +78,9 @@ Resources:
       AllocatedStorage: !Ref DBAllocatedStorage
       VPCSecurityGroups: !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
-      Engine: MySQL
-      EngineVersion: 8.0.20
+      Engine: MariaDB
+      EngineVersion: 10.4.8
       Port: 3306
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       MultiAZ: !Ref 'MultiAZ'
-  ReplicaDB:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      SourceDBInstanceIdentifier: !Ref 'MyDB'
-      DBInstanceClass: !Ref 'DBInstanceClass'
-      Tags:
-      - Key: Name
-        Value: Read Replica Database
