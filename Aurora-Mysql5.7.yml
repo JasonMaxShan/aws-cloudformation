@@ -73,7 +73,7 @@ Resources:
     Properties:
       AvailabilityZones: !Ref AvailabilityZones
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-mysql
       MasterUserPassword: !Ref DBPassword
       MasterUsername: !Ref DBUsername
       DatabaseName: !Ref DBName
@@ -86,12 +86,12 @@ Resources:
       DBClusterIdentifier: !Ref RDSCluster
       DBInstanceClass: !Ref DBInstanceClass
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-mysql
     Type: "AWS::RDS::DBInstance"
   RDSDBInstance2:
     Properties:
       DBClusterIdentifier: !Ref RDSCluster
       DBInstanceClass: !Ref DBInstanceClass
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-mysql
     Type: "AWS::RDS::DBInstance"

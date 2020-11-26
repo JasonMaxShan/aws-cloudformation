@@ -1,4 +1,4 @@
-Description: Deploy an Aurora Mysql cluster
+Description: Deploy an Aurora Postgre cluster
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -31,7 +31,7 @@ Parameters:
     Description: DB SecurityGroup ID
     Type: "List<AWS::EC2::SecurityGroup::Id>"
   DBInstanceClass:
-    Default: db.t2.small
+    Default: db.r4.large
     Description: DB instance class
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
@@ -44,14 +44,14 @@ Parameters:
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   DBUsername:
-    Description: Username for MySQL database access
+    Description: Username for Postgre database access
     Type: String
     MinLength: "1"
     MaxLength: "16"
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   DBPassword:
-    Description: Password MySQL database access
+    Description: Password Postgre database access
     Type: String
     MinLength: "8"
     MaxLength: "41"
@@ -68,12 +68,12 @@ Resources:
       SubnetIds: !Ref DatabaseSubnets
       Tags:
         - Key: DBType
-          Value: Mysql
+          Value: aurora-postgresql
   RDSCluster:
     Properties:
       AvailabilityZones: !Ref AvailabilityZones
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-postgresql
       MasterUserPassword: !Ref DBPassword
       MasterUsername: !Ref DBUsername
       DatabaseName: !Ref DBName
@@ -86,12 +86,12 @@ Resources:
       DBClusterIdentifier: !Ref RDSCluster
       DBInstanceClass: !Ref DBInstanceClass
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-postgresql
     Type: "AWS::RDS::DBInstance"
   RDSDBInstance2:
     Properties:
       DBClusterIdentifier: !Ref RDSCluster
       DBInstanceClass: !Ref DBInstanceClass
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
-      Engine: aurora
+      Engine: aurora-postgresql
     Type: "AWS::RDS::DBInstance"
