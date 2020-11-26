@@ -1,6 +1,22 @@
 Description: Need an existing VPC
   Create IGW  2Pub 2Pri 2DBSub and SecurityGroups
-
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - EnvironmentName
+          - VPC
+          - InternetGateway
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - DBSubnet1CIDR
+          - DBSubnet2CIDR
+          - DBSGIngressPort
+          - ElasticCacheSGIngressPort
 Parameters:
   EnvironmentName:
     Description: An environment name that is prefixed to resource names
@@ -127,7 +143,6 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} DB Subnet (AZ2)
 
-
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -164,7 +179,6 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ1)
 
-  
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -178,8 +192,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ2)
-
-  
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation

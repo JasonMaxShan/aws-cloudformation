@@ -3,7 +3,22 @@ Description:
   across two Availability Zones. It deploys an internet gateway, with a default
   route on the public subnets. It deploys a pair of NAT gateways (one in each AZ),
   and default routes for them in the private subnets.
-
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - EnvironmentName
+          - VpcCIDR
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - DBSubnet1CIDR
+          - DBSubnet2CIDR
+          - DBSGIngressPort
+          - ElasticCacheSGIngressPort
 Parameters:
   EnvironmentName:
     Description: An environment name that is prefixed to resource names
@@ -43,13 +58,13 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
     Type: String
     Default: 10.1.6.0/24
-  
+
   DBSGIngressPort:
     Description: MySql:3306 PostgreSql:5432
     Type: Number
     Default: 3306
 
-  ECSGIngressPort:
+  ElasticCacheSGIngressPort:
     Description: Redis:6379 Memcache:11211
     Type: Number
     Default: 6379
@@ -280,10 +295,10 @@ Resources:
       GroupDescription: "Security group with ELB"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
 
   AMISecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -292,15 +307,14 @@ Resources:
       GroupDescription: "Security group with template"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 8080
-        ToPort: 8080
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: 0.0.0.0/0
-
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
 
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -309,10 +323,10 @@ Resources:
       GroupDescription: "Security group with APP"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 8080
-        ToPort: 8080
-        SourceSecurityGroupId: !Ref ELBSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !Ref ELBSecurityGroup
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -321,14 +335,14 @@ Resources:
       GroupDescription: "Security group with DB"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: !Ref DBSGIngressPort
-        ToPort: !Ref DBSGIngressPort
-        SourceSecurityGroupId: !Ref EC2SecurityGroup
-      - IpProtocol: tcp
-        FromPort: !Ref DBSGIngressPort
-        ToPort: !Ref DBSGIngressPort
-        SourceSecurityGroupId: !Ref AMISecurityGroup
+        - IpProtocol: tcp
+          FromPort: !Ref DBSGIngressPort
+          ToPort: !Ref DBSGIngressPort
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+        - IpProtocol: tcp
+          FromPort: !Ref DBSGIngressPort
+          ToPort: !Ref DBSGIngressPort
+          SourceSecurityGroupId: !Ref AMISecurityGroup
 
   ElasticacheGroup:
     Type: AWS::EC2::SecurityGroup
@@ -337,16 +351,15 @@ Resources:
       GroupDescription: "Security group with Elasticache"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: !Ref ECSGIngressPort
-        ToPort: !Ref ECSGIngressPort
-        SourceSecurityGroupId: !Ref EC2SecurityGroup
-      - IpProtocol: tcp
-        FromPort: !Ref ECSGIngressPort
-        ToPort: !Ref ECSGIngressPort
-        SourceSecurityGroupId: !Ref AMISecurityGroup
+        - IpProtocol: tcp
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+        - IpProtocol: tcp
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
+          SourceSecurityGroupId: !Ref AMISecurityGroup
 
-        
 Outputs:
   VPC:
     Description: A reference to the created VPC

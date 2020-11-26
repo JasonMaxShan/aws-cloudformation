@@ -1,6 +1,22 @@
 Description: Need an existing VPC
   Create IGW 2NAT 2Pub 2Pri 2DBSub and SecurityGroups
-
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - EnvironmentName
+          - VPC
+          - InternetGateway
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - DBSubnet1CIDR
+          - DBSubnet2CIDR
+          - DBSGIngressPort
+          - ElasticCacheSGIngressPort
 Parameters:
   EnvironmentName:
     Description: An environment name that is prefixed to resource names
@@ -49,7 +65,7 @@ Parameters:
     Type: Number
     Default: 3306
 
-  ECSGIngressPort:
+  ElasticCacheSGIngressPort:
     Description: Redis:6379 Memcache:11211
     Type: Number
     Default: 6379
@@ -320,10 +336,10 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: !Ref ECSGIngressPort
-          ToPort: !Ref ECSGIngressPort
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
           SourceSecurityGroupId: !Ref EC2SecurityGroup
         - IpProtocol: tcp
-          FromPort: !Ref ECSGIngressPort
-          ToPort: !Ref ECSGIngressPort
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
           SourceSecurityGroupId: !Ref AMISecurityGroup

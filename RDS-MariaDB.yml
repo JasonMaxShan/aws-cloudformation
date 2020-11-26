@@ -1,13 +1,27 @@
-Description:
-  Deploy an RDS MariaDB instance
+Description: Deploy an RDS MariaDB instance
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - DBSubnet
+          - DBSecurityGroup
+          - DBInstanceID
+          - DBName
+          - DBUsername
+          - DBPassword
+          - MultiAZ
+          - DBInstanceClass
+          - DBAllocatedStorage
 Parameters:
   DBInstanceID:
     Default: mydbinstance
     Description: The name of database instance
     Type: String
-    MinLength: '1'
-    MaxLength: '63'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MinLength: "1"
+    MaxLength: "63"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: >-
       Must begin with a letter and must not end with a hyphen or contain two
       consecutive hyphens.
@@ -23,54 +37,54 @@ Parameters:
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
   DBAllocatedStorage:
-    Default: '50'
+    Default: "50"
     Description: The size of the database (GiB)
     Type: Number
-    MinValue: '5'
-    MaxValue: '1024'
+    MinValue: "5"
+    MaxValue: "1024"
     ConstraintDescription: must be between 20 and 65536 GiB.
   DBName:
     Default: mydb
-    Description: The name of the first database 
+    Description: The name of the first database
     Type: String
-    MinLength: '1'
-    MaxLength: '64'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MinLength: "1"
+    MaxLength: "64"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   DBUsername:
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: Username for MariaDB database access
     Type: String
-    MinLength: '1'
-    MaxLength: '16'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    MinLength: "1"
+    MaxLength: "16"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   DBPassword:
-    NoEcho: 'true'
+    NoEcho: "true"
     Description: Password MariaDB database access
     Type: String
-    MinLength: '8'
-    MaxLength: '41'
-    AllowedPattern: '[a-zA-Z0-9]*'
+    MinLength: "8"
+    MaxLength: "41"
+    AllowedPattern: "[a-zA-Z0-9]*"
     ConstraintDescription: must contain only alphanumeric characters.
   MultiAZ:
     Description: Multi-AZ master database
     Type: String
-    Default: 'false'
-    AllowedValues: ['true', 'false']
+    Default: "false"
+    AllowedValues: ["true", "false"]
     ConstraintDescription: must be true or false.
 Resources:
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
-    Properties: 
+    Properties:
       DBSubnetGroupDescription: SubnetGroup
       DBSubnetGroupName: MariaDBSubnetGroup
       SubnetIds: !Ref DBSubnet
-      Tags: 
+      Tags:
         - Key: DBType
           Value: MariaDB
   MyDB:
-    Type: 'AWS::RDS::DBInstance'
+    Type: "AWS::RDS::DBInstance"
     Properties:
       DBName: !Ref DBName
       DBInstanceIdentifier: !Ref DBInstanceID
@@ -83,12 +97,12 @@ Resources:
       Port: 3306
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
-      MultiAZ: !Ref 'MultiAZ'
+      MultiAZ: !Ref "MultiAZ"
   ReplicaDB:
     Type: AWS::RDS::DBInstance
     Properties:
-      SourceDBInstanceIdentifier: !Ref 'MyDB'
-      DBInstanceClass: !Ref 'DBInstanceClass'
+      SourceDBInstanceIdentifier: !Ref "MyDB"
+      DBInstanceClass: !Ref "DBInstanceClass"
       Tags:
-      - Key: Name
-        Value: Read Replica Database
+        - Key: Name
+          Value: Read Replica Database
