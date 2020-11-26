@@ -1,22 +1,21 @@
-Description: Deploy an RDS PostgreSQL instance
+Description: Deploy an Aurora Mysql cluster
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "Network Configuration"
+          default: "RDS Configuration"
         Parameters:
-          - DBSubnet
+          - DatabaseSubnets
           - DBSecurityGroup
           - DBInstanceID
           - DBName
           - DBUsername
           - DBPassword
-          - MultiAZ
+          - AvailabilityZones
           - DBInstanceClass
-          - DBAllocatedStorage
 Parameters:
   DBInstanceID:
-    Default: mydbinstance
+    Default: mydbcluster
     Description: The name of database instance
     Type: String
     MinLength: "1"
@@ -25,24 +24,17 @@ Parameters:
     ConstraintDescription: >-
       Must begin with a letter and must not end with a hyphen or contain two
       consecutive hyphens.
-  DBSubnet:
-    Description: DB Subnet ID
-    Type: "List<AWS::EC2::Subnet::Id>"
+  DatabaseSubnets:
+    Description: The subnets to place database instances in.
+    Type: List<AWS::EC2::Subnet::Id>
   DBSecurityGroup:
     Description: DB SecurityGroup ID
     Type: "List<AWS::EC2::SecurityGroup::Id>"
   DBInstanceClass:
-    Default: db.t2.micro
+    Default: db.t2.small
     Description: DB instance class
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
-  DBAllocatedStorage:
-    Default: "50"
-    Description: The size of the database (GiB)
-    Type: Number
-    MinValue: "5"
-    MaxValue: "1024"
-    ConstraintDescription: must be between 20 and 65536 GiB.
   DBName:
     Default: mydb
     Description: The name of the first database
@@ -52,55 +44,56 @@ Parameters:
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   DBUsername:
-    Description: Username for PostgreSQL database access
+    Description: Username for MySQL database access
     Type: String
     MinLength: "1"
     MaxLength: "16"
     AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
   DBPassword:
-    Description: Password PostgreSQL database access
+    Description: Password MySQL database access
     Type: String
     MinLength: "8"
     MaxLength: "41"
     AllowedPattern: "[a-zA-Z0-9]*"
     ConstraintDescription: must contain only alphanumeric characters.
-  MultiAZ:
-    Description: Multi-AZ master database
-    Type: String
-    Default: "false"
-    AllowedValues: ["true", "false"]
-    ConstraintDescription: must be true or false.
+  AvailabilityZones:
+    Description: Instance deploy AvailabilityZone
+    Type: List<AWS::EC2::AvailabilityZone::Name>
 Resources:
-  DBSubnetGroup:
+  DatabaseSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: SubnetGroup
-      DBSubnetGroupName: PostgreSQLSubnetGroup
-      SubnetIds: !Ref DBSubnet
+      DBSubnetGroupDescription: CloudFormation managed DB subnet group.
+      SubnetIds: !Ref DatabaseSubnets
       Tags:
         - Key: DBType
-          Value: PostgreSQL
-  MyDB:
-    Type: "AWS::RDS::DBInstance"
+          Value: Mysql
+  RDSCluster:
     Properties:
-      DBName: !Ref DBName
-      DBInstanceIdentifier: !Ref DBInstanceID
-      DBInstanceClass: !Ref DBInstanceClass
-      AllocatedStorage: !Ref DBAllocatedStorage
-      VPCSecurityGroups: !Ref DBSecurityGroup
-      DBSubnetGroupName: !Ref DBSubnetGroup
-      Engine: postgres
-      EngineVersion: 9.6.5
-      Port: 5432
-      MasterUsername: !Ref DBUsername
+      AvailabilityZones: !Ref AvailabilityZones
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      Engine: aurora
       MasterUserPassword: !Ref DBPassword
-      MultiAZ: !Ref "MultiAZ"
-  ReplicaDB:
-    Type: AWS::RDS::DBInstance
+      MasterUsername: !Ref DBUsername
+      DatabaseName: !Ref DBName
+      DBClusterIdentifier: !Ref DBInstanceID
+      VpcSecurityGroupIds: !Ref DBSecurityGroup
+      EngineMode: provisioned
+    Type: "AWS::RDS::DBCluster"
+  RDSDBInstance1:
     Properties:
-      SourceDBInstanceIdentifier: !Ref "MyDB"
-      DBInstanceClass: !Ref "DBInstanceClass"
-      Tags:
-        - Key: Name
-          Value: Read Replica Database
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      DBClusterIdentifier: !Ref RDSCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      Engine: aurora
+    Type: "AWS::RDS::DBInstance"
+  RDSDBInstance2:
+    Properties:
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      DBClusterIdentifier: !Ref RDSCluster
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      Engine: aurora
+    Type: "AWS::RDS::DBInstance"
