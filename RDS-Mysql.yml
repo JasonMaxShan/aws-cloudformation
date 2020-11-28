@@ -32,7 +32,7 @@ Parameters:
     Description: DB SecurityGroup ID
     Type: "List<AWS::EC2::SecurityGroup::Id>"
   DBInstanceClass:
-    Default: db.t2.micro
+    Default: db.t2.large
     Description: DB instance class
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
