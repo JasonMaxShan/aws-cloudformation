@@ -82,7 +82,7 @@ Parameters:
   ElasticCacheSGIngressPort:
     Description: Redis:6379 Memcache:11211
     Type: Number
-    Default: 6379
+    Default: 11211
 
   AMISecurityGroupPort:
     Description: Test port
