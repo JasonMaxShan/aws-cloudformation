@@ -15,7 +15,12 @@ Metadata:
           - PrivateSubnet2CIDR
           - DBSubnet1CIDR
           - DBSubnet2CIDR
+          - AMISecurityGroupPort
+          - EC2SecurityGroupName
+          - ELBSecurityGroupName
+          - DBSGSecurityGroupName
           - DBSGIngressPort
+          - ElasticacheSecurityGroupName
           - ElasticCacheSGIngressPort
 Parameters:
   EnvironmentName:
@@ -64,11 +69,36 @@ Parameters:
     Description: MySql:3306 PostgreSql:5432
     Type: Number
     Default: 3306
-
-  ECSGIngressPort:
+  
+  DBSGSecurityGroupName:
+    Description: DB SG name
+    Type: String
+    Default: sg_db
+  
+  ElasticCacheSGIngressPort:
     Description: Redis:6379 Memcache:11211
     Type: Number
-    Default: 6379
+    Default: 11211
+  
+  ElasticacheSecurityGroupName:
+    Description: ElasticacheGroup SG name
+    Type: String
+    Default: sg_memcache
+
+  AMISecurityGroupPort:
+    Description: Test port
+    Type: Number
+    Default: 8080
+  
+  EC2SecurityGroupName:
+    Description: Server SG name , port is same to test SG
+    Type: String
+    Default: sg_app
+
+  ELBSecurityGroupName:
+    Description: ELB SG name
+    Type: String
+    Default: sg_elb
 
 Resources:
   InternetGatewayAttachment:
@@ -143,6 +173,7 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} DB Subnet (AZ2)
 
+  
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -179,6 +210,8 @@ Resources:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ1)
 
+  
+
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -192,6 +225,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+
+  
 
   PrivateSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -237,13 +272,13 @@ Resources:
   ELBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: "SG-ELB"
+      GroupName: !Ref ELBSecurityGroupName
       GroupDescription: "Security group with ELB"
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: !Ref AMISecurityGroupPort
+          ToPort: !Ref AMISecurityGroupPort
           CidrIp: 0.0.0.0/0
 
   AMISecurityGroup:
@@ -254,8 +289,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
+          FromPort: !Ref AMISecurityGroupPort
+          ToPort: !Ref AMISecurityGroupPort
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 22
@@ -265,19 +300,19 @@ Resources:
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: "SG-APP"
+      GroupName: !Ref EC2SecurityGroupName
       GroupDescription: "Security group with APP"
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
+          FromPort: !Ref AMISecurityGroupPort
+          ToPort: !Ref AMISecurityGroupPort
           SourceSecurityGroupId: !Ref ELBSecurityGroup
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: "SG-DB"
+      GroupName: !Ref DBSGSecurityGroupName
       GroupDescription: "Security group with DB"
       VpcId: !Ref VPC
       SecurityGroupIngress:
@@ -293,15 +328,15 @@ Resources:
   ElasticacheGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: "SG-Elasticache"
+      GroupName: !Ref ElasticacheSecurityGroupName
       GroupDescription: "Security group with Elasticache"
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: !Ref ECSGIngressPort
-          ToPort: !Ref ECSGIngressPort
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
           SourceSecurityGroupId: !Ref EC2SecurityGroup
         - IpProtocol: tcp
-          FromPort: !Ref ECSGIngressPort
-          ToPort: !Ref ECSGIngressPort
+          FromPort: !Ref ElasticCacheSGIngressPort
+          ToPort: !Ref ElasticCacheSGIngressPort
           SourceSecurityGroupId: !Ref AMISecurityGroup
