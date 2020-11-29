@@ -1,0 +1,27 @@
+Description: Deploy an memcache cluster
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - ElasticCacheSubnets
+Parameters:
+  ElasticCacheSubnets:
+    Description: EC Subnet ID
+    Type: "List<AWS::EC2::Subnet::Id>"
+  ElasticCacheName:
+    Description: ElasticCacheName
+    Type: String
+  
+Resources:
+  ElasticCacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      CacheSubnetGroupName: memcacheSubnets
+      Description: CacheSubnetGroup
+      SubnetIds: !Ref ElasticCacheSubnets
+  ElastiCacheCluster:
+    Type: AWS::ElastiCache::CacheCluster
+    Properties: 
+      AZMode:
