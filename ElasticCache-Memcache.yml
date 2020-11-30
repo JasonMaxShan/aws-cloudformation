@@ -6,14 +6,32 @@ Metadata:
           default: "Network Configuration"
         Parameters:
           - ElasticCacheSubnets
+          - CacheSecurityGroupNames
+          - ClusterName
+          - CacheNodeType
+          - NumCacheNodes
+          - PreferredAvailabilityZones
 Parameters:
   ElasticCacheSubnets:
     Description: EC Subnet ID
     Type: "List<AWS::EC2::Subnet::Id>"
-  ElasticCacheName:
-    Description: ElasticCacheName
+  CacheNodeType:
+    Description: Node Type
     Type: String
-  
+    AllowedValues: ["cache.r4.large", "cache.r4.xlarge", "cache.r4.2xlarge", "cache.r4.4xlarge", "cache.r4.8xlarge", "cache.r4.16xlarge"]
+  CacheSecurityGroupNames:
+    Description: SecurityGroupNames
+    Type: "List<AWS::EC2::SecurityGroup::Id>"
+  ClusterName:
+    Description: Cluster Name
+    Type: String
+  NumCacheNodes:
+    Description: Number of cache nodes
+    Type: Number
+    Default: 2
+  PreferredAvailabilityZones:
+    Description: AZs of Cluster
+    Type: List<AWS::EC2::AvailabilityZone::Name>
 Resources:
   ElasticCacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
@@ -24,4 +42,12 @@ Resources:
   ElastiCacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties: 
-      AZMode:
+      AZMode: cross-az
+      CacheNodeType: !Ref CacheNodeType
+      CacheSubnetGroupName: !Ref ElasticCacheSubnetGroup
+      ClusterName: !Ref ClusterName
+      Engine: memcached
+      NumCacheNodes: !Ref NumCacheNodes
+      Port: 11211
+      PreferredAvailabilityZones: !Ref PreferredAvailabilityZones
+      VpcSecurityGroupIds: !Ref CacheSecurityGroupNames
