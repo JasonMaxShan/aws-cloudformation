@@ -9,8 +9,6 @@ Metadata:
           - CacheSecurityGroupNames
           - ClusterName
           - CacheNodeType
-          - NumCacheNodes
-          - PreferredAvailabilityZones
 Parameters:
   ElasticCacheSubnets:
     Description: EC Subnet ID
@@ -25,13 +23,6 @@ Parameters:
   ClusterName:
     Description: Cluster Name
     Type: String
-  NumCacheNodes:
-    Description: Number of cache nodes
-    Type: Number
-    Default: 2
-  PreferredAvailabilityZones:
-    Description: AZs of Cluster
-    Type: List<AWS::EC2::AvailabilityZone::Name>
 Resources:
   ElasticCacheSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
@@ -42,12 +33,10 @@ Resources:
   ElastiCacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties: 
-      AZMode: cross-az
       CacheNodeType: !Ref CacheNodeType
       CacheSubnetGroupName: !Ref ElasticCacheSubnetGroup
       ClusterName: !Ref ClusterName
-      Engine: memcached
-      NumCacheNodes: !Ref NumCacheNodes
-      Port: 11211
-      PreferredAvailabilityZones: !Ref PreferredAvailabilityZones
+      Engine: redis
+      NumCacheNodes: 1
+      Port: 6379
       VpcSecurityGroupIds: !Ref CacheSecurityGroupNames
